@@ -207,6 +207,16 @@ var CB=0;async function ev(){const q=Math.random;if(!B&&q()<.15)spawn();if(q()<.
 function endDay(){hold=1;RP=RP.map(p=>p+Math.round(Math.random()*40-15));const o=rkO(),dk=o.indexOf(0)+1,dd=PR[0]-dk;rR();$("dy").innerHTML=`<div class=cd style="max-width:360px;margin:12vh auto;text-align:center"><h3>🌙 ${day}일차 종료</h3><p>오늘 파견 ${stats.d}회 · 사건 해결 ${stats.w}건<br>데쿠 랭킹 ${dk}위 ${dd>0?"(▲"+dd+")":dd<0?"(▼"+-dd+")":"(변동 없음)"}<br>TOP3: ${o.slice(0,3).map(i=>NA[i]).join(" · ")}<br>💞 바쿠고와의 관계: ${REL[rel]}${INJ[0]>0?`<br>🤕 부상 회복까지 ${INJ[0]}일`:""}</p><button class=b id=nx>☀️ ${day+1}일차 아침으로</button></div>`;$("dy").style.display="block"}
 $("dy").onclick=e=>{if(e.target.id!="nx")return;day++;gm=420;hold=0;stats={d:0,w:0};healDay();dawn(`☀️ ${day}일차 아침이 밝았어요${INJ[0]>0?` · 🤕 회복까지 ${INJ[0]}일`:""}`,"하루 랭킹 변동 정리, TOP3: "+rkO().slice(0,3).map(i=>NA[i]).join(","))};
 (async()=>{rkO().forEach((i,k)=>PR[i]=k+1);fillR();$("clk").textContent=clk();ab();N=FN2.slice(0,2).map(f=>({g:f[0],t:f[1],b:f[2],w:f[3],tm:clk()}));P=FP.map(f=>mp({t:f[1],c:[{t:R(FC)}]},0));rN();rP();rR();
-try{SM=await claude.use("sample")}catch(e){SM=null}
+const PROXY="https://hn-proxy.내계정.workers.dev";
+const TOKEN=localStorage.getItem("hn_token")||(()=>{const k=prompt("접속 토큰을 입력하세요");if(k)localStorage.setItem("hn_token",k);return k})();
+SM={async json(p){
+  const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json","X-App-Token":TOKEN},body:JSON.stringify({prompt:p})});
+  if(r.status==429)throw {code:"rate_limited"};
+  if(r.status==401){localStorage.removeItem("hn_token");throw {code:"unauthorized"}}
+  if(!r.ok)throw {code:"http_"+r.status};
+  const d=await r.json();
+  const t=(d.candidates?.[0]?.content?.parts||[]).map(x=>x.text||"").join("");
+  return JSON.parse(t.replace(/```json|```/g,"").trim());
+}};
 setTimeout(incoming,7000);setTimeout(()=>{if(!B)spawn()},4000);clearInterval(TK);TK=setInterval(adv,1000/SPD)})();
 </script></body></html>
