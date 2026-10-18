@@ -210,13 +210,19 @@ $("dy").onclick=e=>{if(e.target.id!="nx")return;day++;gm=420;hold=0;stats={d:0,w
 const PROXY="https://lucky-dawn-b010.ainjamong0715.workers.dev/";
 const TOKEN=localStorage.getItem("hn_token")||(()=>{const k=prompt("접속 토큰을 입력하세요");if(k)localStorage.setItem("hn_token",k);return k})();
 SM={async json(p){
-  const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json","X-App-Token":TOKEN},body:JSON.stringify({prompt:p})});
-  if(r.status==429)throw {code:"rate_limited"};
-  if(r.status==401){localStorage.removeItem("hn_token");throw {code:"unauthorized"}}
-  if(!r.ok)throw {code:"http_"+r.status};
-  const d=await r.json();
-  const t=(d.candidates?.[0]?.content?.parts||[]).map(x=>x.text||"").join("");
-  return JSON.parse(t.replace(/```json|```/g,"").trim());
+  try{
+    const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json","X-App-Token":TOKEN},body:JSON.stringify({prompt:p})});
+    const raw=await r.text();
+    if(!r.ok){console.error("[Gemini 프록시 오류]",r.status,raw.slice(0,300));
+      if(r.status==429)throw {code:"rate_limited"};
+      if(r.status==401){localStorage.removeItem("hn_token")}
+      throw {code:"http_"+r.status}}
+    const d=JSON.parse(raw);
+    const t=(d.candidates?.[0]?.content?.parts||[]).map(x=>x.text||"").join("");
+    if(!t){console.error("[Gemini 빈 응답]",raw.slice(0,300));throw {code:"empty"}}
+    try{return JSON.parse(t.replace(/```json|```/g,"").trim())}
+    catch(e){console.error("[JSON 파싱 실패]",t.slice(0,300));throw e}
+  }catch(e){if(!e.code)console.error("[네트워크/CORS 오류]",e);throw e}
 }};
 setTimeout(incoming,7000);setTimeout(()=>{if(!B)spawn()},4000);clearInterval(TK);TK=setInterval(adv,1000/SPD)})();
 </script></body></html>
